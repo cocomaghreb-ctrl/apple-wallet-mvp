@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTHENTICATION & ADMIN
+// ============================================================================
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("admin")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// ============================================================================
+// CUSTOMER & LOYALTY CARD
+// ============================================================================
+
+model Customer {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  loyaltyCards  LoyaltyCard[]
+  pointTransactions PointTransaction[]
+
+  @@map("customers")
+}
+
+model LoyaltyCard {
+  id                String   @id @default(cuid())
+  customerId        String
+  loyaltyId         String   @unique
+  tier              String   @default("silver")
+  points            Int      @default(0)
+  totalPointsEarned Int      @default(0)
+  totalPointsSpent  Int      @default(0)
+  qrValue           String
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  customer          Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  walletPass        WalletPass?
+  pointTransactions PointTransaction[]
+  updateLogs        UpdateLog[]
+
+  @@index([customerId])
+  @@index([loyaltyId])
+  @@map("loyalty_cards")
+}
+
+// ============================================================================
+// APPLE WALLET PASS
+// ============================================================================
+
+model WalletPass {
+  id                    String   @id @default(cuid())
+  loyaltyCardId         String   @unique
+  serialNumber          String   @unique
+  passTypeIdentifier    String
+  teamIdentifier        String
+  organizationName      String
+  description           String
+  authenticationToken   String
+  webServiceURL         String
+  version               Int      @default(1)
+  lastUpdatedAt         DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  backgroundColor       String?
+  foregroundColor       String?
+  labelColor            String?
+  logoImageBase64       String?
+  stripImageBase64      String?
+
+  loyaltyCard           LoyaltyCard        @relation(fields: [loyaltyCardId], references: [id], onDelete: Cascade)
+  deviceRegistrations   DeviceRegistration[]
+  updateLogs            UpdateLog[]
+
+  @@index([loyaltyCardId])
+  @@index([serialNumber])
+  @@index([passTypeIdentifier])
+  @@map("wallet_passes")
+}
+
+// ============================================================================
+// DEVICE REGISTRATION
+// ============================================================================
+
+model DeviceRegistration {
+  id                      String   @id @default(cuid())
+  walletPassId            String
+  deviceLibraryIdentifier String
+  pushToken               String
+  registeredAt            DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  walletPass              WalletPass @relation(fields: [walletPassId], references: [id], onDelete: Cascade)
+
+  @@unique([walletPassId, deviceLibraryIdentifier])
+  @@index([walletPassId])
+  @@index([deviceLibraryIdentifier])
+  @@map("device_registrations")
+}
+
+// ============================================================================
+// POINT TRANSACTIONS
+// ============================================================================
+
+model PointTransaction {
+  id            String   @id @default(cuid())
+  loyaltyCardId String
+  customerId    String
+  points        Int
+  reason        String
+  description   String?
+  createdAt     DateTime @default(now())
+
+  loyaltyCard   LoyaltyCard @relation(fields: [loyaltyCardId], references: [id], onDelete: Cascade)
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([loyaltyCardId])
+  @@index([customerId])
+  @@map("point_transactions")
+}
+
+// ============================================================================
+// AUDIT & UPDATE LOGS
+// ============================================================================
+
+model UpdateLog {
+  id            String   @id @default(cuid())
+  walletPassId  String
+  loyaltyCardId String
+  action        String
+  oldValue      String?
+  newValue      String?
+  adminEmail    String?
+  createdAt     DateTime @default(now())
+
+  walletPass    WalletPass  @relation(fields: [walletPassId], references: [id], onDelete: Cascade)
+  loyaltyCard   LoyaltyCard @relation(fields: [loyaltyCardId], references: [id], onDelete: Cascade)
+
+  @@index([walletPassId])
+  @@index([loyaltyCardId])
+  @@map("update_logs")
+}

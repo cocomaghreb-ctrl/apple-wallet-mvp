@@ -1,0 +1,26 @@
+{
+  "name": "apple-wallet-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Apple Wallet Loyalty Card MVP",
+  "scripts": {
+    "dev": "pnpm -r --parallel run dev",
+    "build": "pnpm -r run build",
+    "start": "pnpm -r run start",
+    "db:push": "cd apps/api && pnpm prisma db push",
+    "db:migrate": "cd apps/api && pnpm prisma migrate dev",
+    "db:seed": "cd apps/api && pnpm prisma db seed",
+    "db:reset": "cd apps/api && pnpm prisma migrate reset",
+    "db:studio": "cd apps/api && pnpm prisma studio",
+    "lint": "pnpm -r run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "type-check": "pnpm -r run type-check"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.3.0",
+    "typescript": "^5.4.0"
+  }
+}
