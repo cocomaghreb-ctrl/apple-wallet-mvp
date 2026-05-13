@@ -1,9 +1,9 @@
-import { v4 as uuidv4 } from 'crypto';
+import { randomBytes } from 'crypto';
 
 export const generateSerialNumber = (): string => {
-  return uuidv4().replace(/-/g, '').substring(0, 16);
+  return randomBytes(8).toString('hex');
 };
 
 export const generateAuthenticationToken = (): string => {
-  return uuidv4().replace(/-/g, '');
+  return randomBytes(32).toString('hex');
 };
